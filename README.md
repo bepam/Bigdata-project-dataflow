@@ -11,14 +11,13 @@ docker compose up -d --build   →   sensor → Bronze → Silver → quality ga
 
 ## 👥 Integrantes
 
+
 | Nome | RA | Responsabilidade principal |
 |---|---|---|
-| _Nome completo_ | _RA_ | Ingestão (Bronze) |
-| _Nome completo_ | _RA_ | Transformação (Silver) |
-| _Nome completo_ | _RA_ | Qualidade de dados |
-| _Nome completo_ | _RA_ | Agregações (Gold) |
-| _Nome completo_ | _RA_ | Orquestração e Docker |
-
+| Adriana Cirelli | 10756333 |  |
+| Rafaela Catharina Pechtoll Pereira | 10755272 |  |
+| Jessica da Silva Oliveira | 10391085 |  |
+| Pamella Bezerra da Silva | 10752643 |  |
 ---
 
 ## 🚀 Como rodar
