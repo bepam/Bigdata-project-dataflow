@@ -1,0 +1,7 @@
+# Dependências adicionais sobre a imagem apache/airflow:2.8.4-python3.11
+# (versões alinhadas ao constraints oficial do Airflow 2.8.4 / Python 3.11)
+pyspark==3.5.1
+apache-airflow-providers-apache-spark==4.7.1
+# usados por scripts/mostrar_resultados.py (versões fixadas pelo constraints)
+pandas
+pyarrow

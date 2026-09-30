@@ -1,0 +1,15 @@
+# Saídas do pipeline (geradas a cada execução)
+data/bronze/
+data/silver/
+data/gold/
+data/quarentena/
+data/quality/
+data/notificacoes/
+logs/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+spark-warehouse/
+metastore_db/
+derby.log

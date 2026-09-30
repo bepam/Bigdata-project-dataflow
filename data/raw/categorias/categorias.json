@@ -1,0 +1,265 @@
+{
+  "categorias": [
+    {
+      "category_id": "CAT_01",
+      "category_name": "Eletrônicos",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_001",
+          "subcategory_name": "Smartphones"
+        },
+        {
+          "subcategory_id": "SUBCAT_002",
+          "subcategory_name": "TVs"
+        },
+        {
+          "subcategory_id": "SUBCAT_003",
+          "subcategory_name": "Áudio"
+        },
+        {
+          "subcategory_id": "SUBCAT_004",
+          "subcategory_name": "Câmeras"
+        },
+        {
+          "subcategory_id": "SUBCAT_005",
+          "subcategory_name": "Acessórios"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_02",
+      "category_name": "Moda",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_006",
+          "subcategory_name": "Roupas Masculinas"
+        },
+        {
+          "subcategory_id": "SUBCAT_007",
+          "subcategory_name": "Roupas Femininas"
+        },
+        {
+          "subcategory_id": "SUBCAT_008",
+          "subcategory_name": "Calçados"
+        },
+        {
+          "subcategory_id": "SUBCAT_009",
+          "subcategory_name": "Acessórios"
+        },
+        {
+          "subcategory_id": "SUBCAT_010",
+          "subcategory_name": "Infantil"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_03",
+      "category_name": "Casa e Decoração",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_011",
+          "subcategory_name": "Móveis"
+        },
+        {
+          "subcategory_id": "SUBCAT_012",
+          "subcategory_name": "Iluminação"
+        },
+        {
+          "subcategory_id": "SUBCAT_013",
+          "subcategory_name": "Tapetes"
+        },
+        {
+          "subcategory_id": "SUBCAT_014",
+          "subcategory_name": "Quadros"
+        },
+        {
+          "subcategory_id": "SUBCAT_015",
+          "subcategory_name": "Utilidades"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_04",
+      "category_name": "Esportes",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_016",
+          "subcategory_name": "Fitness"
+        },
+        {
+          "subcategory_id": "SUBCAT_017",
+          "subcategory_name": "Futebol"
+        },
+        {
+          "subcategory_id": "SUBCAT_018",
+          "subcategory_name": "Corrida"
+        },
+        {
+          "subcategory_id": "SUBCAT_019",
+          "subcategory_name": "Natação"
+        },
+        {
+          "subcategory_id": "SUBCAT_020",
+          "subcategory_name": "Ciclismo"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_05",
+      "category_name": "Livros",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_021",
+          "subcategory_name": "Ficção"
+        },
+        {
+          "subcategory_id": "SUBCAT_022",
+          "subcategory_name": "Técnicos"
+        },
+        {
+          "subcategory_id": "SUBCAT_023",
+          "subcategory_name": "Infantil"
+        },
+        {
+          "subcategory_id": "SUBCAT_024",
+          "subcategory_name": "Autoajuda"
+        },
+        {
+          "subcategory_id": "SUBCAT_025",
+          "subcategory_name": "Acadêmicos"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_06",
+      "category_name": "Saúde e Beleza",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_026",
+          "subcategory_name": "Perfumes"
+        },
+        {
+          "subcategory_id": "SUBCAT_027",
+          "subcategory_name": "Maquiagem"
+        },
+        {
+          "subcategory_id": "SUBCAT_028",
+          "subcategory_name": "Cuidados Pessoais"
+        },
+        {
+          "subcategory_id": "SUBCAT_029",
+          "subcategory_name": "Vitaminas"
+        },
+        {
+          "subcategory_id": "SUBCAT_030",
+          "subcategory_name": "Cabelos"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_07",
+      "category_name": "Alimentos",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_031",
+          "subcategory_name": "Bebidas"
+        },
+        {
+          "subcategory_id": "SUBCAT_032",
+          "subcategory_name": "Orgânicos"
+        },
+        {
+          "subcategory_id": "SUBCAT_033",
+          "subcategory_name": "Importados"
+        },
+        {
+          "subcategory_id": "SUBCAT_034",
+          "subcategory_name": "Doces"
+        },
+        {
+          "subcategory_id": "SUBCAT_035",
+          "subcategory_name": "Saudáveis"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_08",
+      "category_name": "Brinquedos",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_036",
+          "subcategory_name": "Educativos"
+        },
+        {
+          "subcategory_id": "SUBCAT_037",
+          "subcategory_name": "Jogos"
+        },
+        {
+          "subcategory_id": "SUBCAT_038",
+          "subcategory_name": "Bonecas"
+        },
+        {
+          "subcategory_id": "SUBCAT_039",
+          "subcategory_name": "Veículos"
+        },
+        {
+          "subcategory_id": "SUBCAT_040",
+          "subcategory_name": "Eletrônicos"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_09",
+      "category_name": "Automotivo",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_041",
+          "subcategory_name": "Peças"
+        },
+        {
+          "subcategory_id": "SUBCAT_042",
+          "subcategory_name": "Acessórios"
+        },
+        {
+          "subcategory_id": "SUBCAT_043",
+          "subcategory_name": "Óleos"
+        },
+        {
+          "subcategory_id": "SUBCAT_044",
+          "subcategory_name": "Ferramentas"
+        },
+        {
+          "subcategory_id": "SUBCAT_045",
+          "subcategory_name": "Som"
+        }
+      ]
+    },
+    {
+      "category_id": "CAT_10",
+      "category_name": "Informática",
+      "subcategories": [
+        {
+          "subcategory_id": "SUBCAT_046",
+          "subcategory_name": "Notebooks"
+        },
+        {
+          "subcategory_id": "SUBCAT_047",
+          "subcategory_name": "Periféricos"
+        },
+        {
+          "subcategory_id": "SUBCAT_048",
+          "subcategory_name": "Componentes"
+        },
+        {
+          "subcategory_id": "SUBCAT_049",
+          "subcategory_name": "Redes"
+        },
+        {
+          "subcategory_id": "SUBCAT_050",
+          "subcategory_name": "Software"
+        }
+      ]
+    }
+  ],
+  "generated_at": "2026-07-09T13:55:45.944718"
+}
