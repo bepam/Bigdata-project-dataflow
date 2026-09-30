@@ -38,7 +38,7 @@ Há duas formas. As duas usam o mesmo `docker-compose.yml`, e os dados de entrad
 **Pré-requisitos:** Docker Desktop (ou Docker Engine) com Compose 2.x, 8 GB de RAM livres para o Docker, 4 CPUs, ~5 GB de disco. Portas **8080** e **4040** livres.
 
 ```bash
-git clone <url-d
+git clone https://github.com/bepam/Bigdata-project-dataflow.git
 cd Bigdata-project-dataflow
 
 # Somente Linux: arquivos gerados ficam com o seu usuário
