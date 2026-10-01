@@ -12,12 +12,12 @@ docker compose up -d --build   →   sensor → Bronze → Silver → quality ga
 ## 👥 Integrantes
 
 
-| Nome | RA | Responsabilidade principal |
-|---|---|---|
-| Adriana Cirelli | 10756333 |  |
-| Rafaela Catharina Pechtoll Pereira | 10755272 |  |
-| Jessica da Silva Oliveira | 10391085 |  |
-| Pamella Bezerra da Silva | 10752643 |  |
+| Nome | RA |
+|---|---|
+| Adriana Cirelli | 10756333 |
+| Rafaela Catharina Pechtoll Pereira | 10755272 |
+| Jessica da Silva Oliveira | 10391085 |
+| Pamella Bezerra da Silva | 10752643 |
 ---
 
 ## 🚀 Como rodar
