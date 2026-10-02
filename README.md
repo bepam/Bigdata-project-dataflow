@@ -31,7 +31,6 @@ Há duas formas. As duas usam o mesmo `docker-compose.yml`, e os dados de entrad
 3. Aguarde. O Codespace já roda `docker compose up -d --build` sozinho. A primeira vez leva de 5 a 8 minutos; acompanhe no terminal com `docker compose ps`.
 4. Aba **PORTS** → porta **8080** → 🌐 abre o Airflow. A 4040 é a Spark UI (só aparece enquanto um job roda).
 
-> **Custo:** contas pessoais têm 120 core-horas grátis por mês, ou seja, **~30 h** numa máquina de 4 cores. **Pare o Codespace** quando não estiver usando (*Codespaces → Stop*); ele hiberna sozinho após 30 min parado e, ao reabrir, o ambiente sobe de novo automaticamente.
 
 ### Opção 2 — Docker na própria máquina
 
@@ -71,15 +70,15 @@ rm -rf data/bronze data/silver data/gold data/quarentena data/quality data/notif
 
 ---
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 ```mermaid
 flowchart LR
-    RAW["📂 data/raw<br/>CSV · JSON · Parquet"] --> B["🥉 Bronze<br/>dado bruto + metadados"]
-    B --> S["🥈 Silver<br/>schema unificado · limpo · deduplicado"]
-    B -. reprovados .-> Q["🚧 Quarentena<br/>+ motivos"]
-    S --> QG{{"Quality gate"}} --> G["🥇 Gold<br/>estado · mês · pagamento · categoria×segmento"]
-    G --> QG2{{"Quality gate"}} --> N["📣 Notificação"]
+    RAW["data/raw<br/>CSV · JSON · Parquet"] --> B["Bronze<br/>dado bruto + metadados"]
+    B --> S["Silver<br/>schema unificado · limpo · deduplicado"]
+    B -. reprovados .-> Q["Quarentena<br/>+ motivos"]
+    S --> QG{{"Quality gate"}} --> G["Gold<br/>estado · mês · pagamento · categoria×segmento"]
+    G --> QG2{{"Quality gate"}} --> N["Notificação"]
 ```
 
 Detalhes completos (diagramas da DAG, contrato de cada camada, regras de qualidade e decisões): **[docs/arquitetura.md](docs/arquitetura.md)**.
@@ -136,7 +135,7 @@ Retries com backoff, callback de falha, `max_active_runs=1` e parâmetros `taxa_
 
 ---
 
-## 📁 Estrutura do repositório
+## Estrutura do repositório
 
 ```
 projeto-final/
@@ -188,7 +187,7 @@ spark-submit quality/checks.py --camada gold
 python scripts/mostrar_resultados.py
 ```
 
-## 🛠️ Stack
+## Stack
 
 | Tecnologia | Versão |
 |---|---|
@@ -199,7 +198,7 @@ python scripts/mostrar_resultados.py
 | Docker Compose | 2.x |
 | Formato de saída | Parquet (Snappy) |
 
-## ❓ Problemas comuns
+## Problemas comuns
 
 | Sintoma | Solução |
 |---|---|
