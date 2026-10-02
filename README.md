@@ -1,7 +1,7 @@
-# Pipeline ShopBrasil - DataFlow Analytics
+# **Opção A - Pipeline ShopBrasil - DataFlow Analytics
 
 **Projeto Final · Big Data Processing · MBA em Engenharia de Dados - Universidade Presbiteriana Mackenzie**
-Professor: Alexandre Tavares · **Opção A - Pipeline de E-commerce**
+Professor: Alexandre Tavares
 
 ## O case
 
