@@ -12,7 +12,7 @@ from pyspark.sql import SparkSession
 from quality.checks import aplicar_quarentena
 
 COLS = ("order_id customer_id product_id quantity unit_price total_amount order_date "
-        "payment_method shipping_city shipping_state status partner_source "
+        "payment_method shipping_city shipping_state status "
         "_source _source_file _ingestion_ts order_ts").split()
 
 
@@ -28,7 +28,7 @@ def _venda(order_id, **kw):
     base = dict(order_id=order_id, customer_id="C1", product_id="PROD_0001", quantity=2,
                 unit_price=10.0, total_amount=20.0, order_date=ts.date(), payment_method="pix",
                 shipping_city="Santos", shipping_state="SP", status="delivered",
-                partner_source="parceiro_a", _source="parceiro_a", _source_file="f.csv",
+                _source="vendas_csv", _source_file="f.csv",
                 _ingestion_ts=ts, order_ts=ts)
     base.update(kw)
     return tuple(base[c] for c in COLS)
@@ -37,7 +37,7 @@ def _venda(order_id, **kw):
 def _rodar(spark, linhas):
     schema = ("order_id string, customer_id string, product_id string, quantity int, unit_price double, "
               "total_amount double, order_date date, payment_method string, shipping_city string, "
-              "shipping_state string, status string, partner_source string, _source string, "
+              "shipping_state string, status string, _source string, "
               "_source_file string, _ingestion_ts timestamp, order_ts timestamp")
     vendas = spark.createDataFrame(linhas, schema)
     clientes = spark.createDataFrame([("C1",)], "customer_id string")

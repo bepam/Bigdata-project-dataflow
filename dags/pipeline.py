@@ -4,7 +4,7 @@ DAG: shopbrasil_pipeline_vendas — DataFlow Analytics × ShopBrasil
 
 Pipeline de produção (arquitetura Medallion) orquestrado pelo Airflow:
 
-  aguardar_arquivos_parceiros   PythonSensor (reschedule) — os 3 parceiros + clientes + categorias chegaram?
+  aguardar_arquivos_vendas      PythonSensor (reschedule) — vendas, clientes e categorias chegaram?
         │
   bronze_ingestao               spark-submit ingestao.py      (raw → bronze)
         │
@@ -53,9 +53,9 @@ SPARK_CONN_ID = "spark_local"  # definida via env AIRFLOW_CONN_SPARK_LOCAL (dock
 
 # Fonte → padrão de arquivo esperado em data/raw/
 FONTES_ESPERADAS = {
-    "parceiro_a": "*.csv",
-    "parceiro_b": "*.json",
-    "parceiro_c": "*.parquet",
+    "vendas_csv": "*.csv",
+    "vendas_json": "*.json",
+    "vendas_parquet": "*.parquet",
     "clientes": "*.parquet",
     "categorias": "*.json",
 }
@@ -128,7 +128,7 @@ def alertar_quarentena(**context) -> None:
         "taxa_quarentena": silver.get("taxa_quarentena"),
         "por_regra": silver.get("quarentena_por_regra"),
         "por_fonte": silver.get("quarentena_por_fonte"),
-        "acao": "Revisar data/quarentena/vendas e acionar o(s) parceiro(s) de origem",
+        "acao": "Revisar data/quarentena/vendas e corrigir na fonte de origem",
     }
     arquivo = _gravar_notificacao("quarentena", conteudo)
     print(f"⚠️  {conteudo['registros_em_quarentena']} registros em quarentena — {arquivo}")
@@ -226,7 +226,7 @@ with DAG(
 ) as dag:
 
     aguardar = PythonSensor(
-        task_id="aguardar_arquivos_parceiros",
+        task_id="aguardar_arquivos_vendas",
         python_callable=verificar_arquivos,
         poke_interval=20,
         timeout=30 * 60,

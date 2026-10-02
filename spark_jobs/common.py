@@ -36,8 +36,8 @@ QUALITY = DATA_DIR / "quality"
 METRICAS = QUALITY / "ultima_execucao"   # JSONs da última execução (lidos pela DAG)
 HISTORICO = QUALITY / "historico"        # Parquet append-only (monitoramento)
 
-# Fontes de vendas (parceiros) — nome lógico → pasta em raw/
-PARCEIROS = ["parceiro_a", "parceiro_b", "parceiro_c"]
+# Fontes de vendas — nome lógico = pasta em raw/
+FONTES_VENDAS = ["vendas_csv", "vendas_json", "vendas_parquet"]
 
 
 def caminho(p: Path) -> str:

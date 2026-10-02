@@ -5,15 +5,15 @@
 ```mermaid
 flowchart LR
     subgraph RAW["data/raw — datasets do curso"]
-        A["parceiro_a<br/>3 CSV legado<br/>ISO-8859-1 · ';'"]
-        B["parceiro_b<br/>3 JSON de API<br/>paginado · data[]"]
-        C["parceiro_c<br/>1 Parquet"]
-        CL["clientes (aula_02)<br/>Parquet"]
-        CA["categorias (aula_02)<br/>JSON aninhado"]
+        A["vendas_csv<br/>3 CSV<br/>ISO-8859-1 · ';'"]
+        B["vendas_json<br/>3 JSON<br/>paginado · data[]"]
+        C["vendas_parquet<br/>1 Parquet"]
+        CL["clientes<br/>Parquet"]
+        CA["categorias<br/>JSON aninhado"]
     end
 
     subgraph BRONZE["🥉 Bronze — ingestao.py"]
-        BV["bronze/vendas/&lt;parceiro&gt;<br/>schema original<br/>+ _source, _source_file,<br/>_ingestion_ts, _batch_id"]
+        BV["bronze/vendas/&lt;fonte&gt;<br/>schema original<br/>+ _source, _source_file,<br/>_ingestion_ts, _batch_id"]
         BD["bronze/clientes<br/>bronze/categorias"]
     end
 
@@ -43,7 +43,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    S(["aguardar_arquivos_parceiros<br/>PythonSensor · reschedule"]) --> BR["bronze_ingestao<br/>spark-submit"]
+    S(["aguardar_arquivos_vendas<br/>PythonSensor · reschedule"]) --> BR["bronze_ingestao<br/>spark-submit"]
     BR --> SI["silver_transformacao<br/>spark-submit"]
     SI --> QS{{"quality_gate_silver<br/>6 checks · bloqueante"}}
     QS --> GO["gold_agregacao<br/>spark-submit"]
@@ -70,8 +70,8 @@ flowchart LR
 ## 3. Contrato de cada camada
 
 ### Bronze — "como chegou"
-- Nenhuma regra de negócio. Parceiro A continua com colunas em português e tudo como string; parceiro B mantém o envelope da API (`_api_version`, `_api_page`, `_api_exported_at`).
-- **Contrato de colunas** por fonte: se um parceiro mudar o layout, a ingestão falha com `SchemaDriftError` antes de contaminar a Silver.
+- Nenhuma regra de negócio. O CSV continua com colunas em português e tudo como string; o JSON mantém os nomes originais dos campos.
+- **Contrato de colunas** por fonte: se uma fonte mudar o layout, a ingestão falha com `SchemaDriftError` antes de contaminar a Silver.
 - Metadados de rastreabilidade: `_source`, `_source_file`, `_ingestion_ts`, `_batch_id` (run_id do Airflow), `_data_ref`.
 
 ### Silver — "limpo e confiável"
@@ -89,12 +89,10 @@ Schema unificado de vendas:
 | payment_method | string | credit_card · debit_card · pix · boleto |
 | shipping_city / shipping_state | string | UF entre as 27 válidas |
 | status | string | pending · shipped · delivered · cancelled |
-| partner_source | string | valor **declarado** no arquivo |
-| category_id | string | derivado de product_id (regra do lab da Aula 2: 500 produtos por categoria) |
+| category_id | string | derivado de product_id (regra de catálogo: 500 produtos por categoria) |
 | ano_mes | string | partição |
 | _source … _silver_ts | metadados | linhagem |
 
-> **Achado de qualidade:** a coluna `partner_source` que vem nos arquivos **não bate** com o arquivo de origem real (ex.: linhas do CSV do parceiro A dizem `parceiro_c`). Por isso a linhagem confiável é o `_source` definido pelo pipeline, não o campo declarado.
 
 ### Gold — "pronto para o negócio"
 Faturamento = soma de `total_amount` de pedidos **não cancelados**.
@@ -147,16 +145,16 @@ Valor nulo só reprova em *completude* (as demais regras ignoram nulos), então 
 | **Overwrite** em todas as camadas | Idempotência: reexecutar a DAG não duplica dados | Reprocessa tudo a cada execução (ok para ~170K linhas; para volumes maiores, incremental por `_data_ref`) |
 | Silver particionada por `ano_mes` | Consultas da Gold e do BI filtram por mês | Poucas partições pequenas neste volume |
 | Gold com `coalesce(1)` | Tabelas pequenas → 1 arquivo facilita consumo por BI | Não usar para tabelas grandes |
-| Vendas só de `datasets/aula_03` + dimensões de `datasets/aula_02` | Resultados reais sobre os dados oficiais do curso; cumpre a Opção A (vendas + clientes Parquet + categorias JSON) | Os arquivos são limpos: a quarentena fica vazia; o funcionamento dela é provado pelos testes unitários |
+| Dados: datasets do curso (`datasets/`) | É o que o enunciado da Opção A pede: vendas, clientes (Parquet) e categorias (JSON) | Os arquivos não têm erros: a quarentena fica vazia; o funcionamento dela é provado pelos testes |
 | Minimização de PII na Silver de clientes | LGPD: nome, e-mail e telefone não são necessários para as métricas | Se o negócio precisar, criar camada restrita |
 
 ## 6. Volumes (execução de referência)
 
 | Etapa | Registros |
 |---|---|
-| Bronze — parceiro_a (3 CSV) | 6.871 |
-| Bronze — parceiro_b (3 JSON) | 30.000 |
-| Bronze — parceiro_c (1 Parquet) | 80.000 |
+| Bronze — vendas_csv (3 arquivos) | 6.871 |
+| Bronze — vendas_json (3 arquivos) | 30.000 |
+| Bronze — vendas_parquet (1 arquivo) | 80.000 |
 | Silver — vendas | 116.871 |
 | Quarentena | 0 |
 | Silver — clientes / categorias | 500.000 / 10 |

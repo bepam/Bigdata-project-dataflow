@@ -123,7 +123,7 @@ def faturamento_por_pagamento(vendas: DataFrame) -> DataFrame:
 
 
 def faturamento_categoria_segmento(vendas: DataFrame, clientes: DataFrame, categorias: DataFrame) -> DataFrame:
-    # Dimensões pequenas → broadcast evita shuffle da tabela fato (Aula 2)
+    # Dimensões pequenas → broadcast evita shuffle da tabela de vendas
     base = (
         vendas.join(F.broadcast(categorias.select("category_id", "category_name")), "category_id", "left")
         .join(clientes.select("customer_id", "segment"), "customer_id", "left")

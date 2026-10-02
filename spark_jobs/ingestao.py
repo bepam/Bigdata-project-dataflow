@@ -6,18 +6,18 @@ Lê as fontes da ShopBrasil exatamente como chegam e grava em Parquet, sem
 nenhuma regra de negócio. A única coisa adicionada são metadados de
 rastreabilidade:
 
-    _source         parceiro/fonte de origem (definido pelo pipeline, não pelo arquivo)
+    _source         fonte de origem (definida pelo pipeline)
     _source_file    arquivo físico de onde a linha veio
     _ingestion_ts   momento da ingestão
     _batch_id       run_id do Airflow (liga a linha à execução que a gerou)
     _data_ref       data lógica da execução ({{ ds }})
 
-Fontes (datasets/aula_03 do repositório da disciplina):
-    parceiro_a   CSV legado  (ISO-8859-1, separador ';', colunas em português)
-    parceiro_b   JSON de API (multiLine, registros dentro de data[], paginado)
-    parceiro_c   Parquet     (data lake moderno)
+Vendas:
+    vendas_csv       CSV     (ISO-8859-1, separador ';', colunas em português)
+    vendas_json      JSON    (multiLine, registros dentro de data[], paginado)
+    vendas_parquet   Parquet
 
-Dimensões (datasets/aula_02 do repositório da disciplina):
+Cadastros:
     clientes     Parquet     (cadastro de clientes)
     categorias   JSON        (hierarquia de categorias de produto)
 
@@ -41,14 +41,14 @@ from spark_jobs.common import (
 
 logger = get_logger("bronze.ingestao")
 
-# Contrato mínimo de colunas por fonte: se o parceiro mudar o layout, a
+# Contrato mínimo de colunas por fonte: se a fonte mudar o layout, a
 # ingestão falha cedo (schema drift) em vez de propagar lixo para a Silver.
 CONTRATO_COLUNAS = {
-    "parceiro_a": {"cod_pedido", "cod_cliente", "cod_produto", "qtd", "preco_unit",
+    "vendas_csv": {"cod_pedido", "cod_cliente", "cod_produto", "qtd", "preco_unit",
                    "valor_total", "data_pedido", "forma_pagamento", "uf_entrega", "situacao"},
-    "parceiro_b": {"order_id", "customer_id", "product_id", "quantity", "unit_price",
+    "vendas_json": {"order_id", "customer_id", "product_id", "quantity", "unit_price",
                    "total_amount", "order_date", "payment_method", "shipping_state", "status"},
-    "parceiro_c": {"order_id", "customer_id", "product_id", "quantity", "unit_price",
+    "vendas_parquet": {"order_id", "customer_id", "product_id", "quantity", "unit_price",
                    "total_amount", "order_date", "payment_method", "shipping_state", "status"},
     "clientes": {"customer_id", "state", "segment"},
     "categorias": {"categorias"},
@@ -62,30 +62,22 @@ class SchemaDriftError(Exception):
 # ---------------------------------------------------------------------------
 # Leitores por formato
 # ---------------------------------------------------------------------------
-def ler_parceiro_a(spark: SparkSession) -> DataFrame:
-    # Sem inferSchema: Bronze guarda o dado como veio (tudo string no CSV legado).
+def ler_vendas_csv(spark: SparkSession) -> DataFrame:
+    # Sem inferSchema: Bronze guarda o dado como veio (tudo texto no CSV).
     return spark.read.csv(
-        caminho(RAW / "parceiro_a" / "*.csv"),
+        caminho(RAW / "vendas_csv" / "*.csv"),
         header=True, sep=";", encoding="ISO-8859-1",
     )
 
 
-def ler_parceiro_b(spark: SparkSession) -> DataFrame:
-    bruto = spark.read.json(caminho(RAW / "parceiro_b" / "*.json"), multiLine=True)
-    # Mantém os metadados do envelope da API junto de cada registro
-    return (
-        bruto.select(
-            F.col("api_version").alias("_api_version"),
-            F.col("exported_at").alias("_api_exported_at"),
-            F.col("page").alias("_api_page"),
-            F.explode("data").alias("registro"),
-        )
-        .select("registro.*", "_api_version", "_api_exported_at", "_api_page")
-    )
+def ler_vendas_json(spark: SparkSession) -> DataFrame:
+    bruto = spark.read.json(caminho(RAW / "vendas_json" / "*.json"), multiLine=True)
+    # Cada arquivo traz as vendas dentro de uma lista chamada "data"
+    return bruto.select(F.explode("data").alias("registro")).select("registro.*")
 
 
-def ler_parceiro_c(spark: SparkSession) -> DataFrame:
-    return spark.read.parquet(caminho(RAW / "parceiro_c"))
+def ler_vendas_parquet(spark: SparkSession) -> DataFrame:
+    return spark.read.parquet(caminho(RAW / "vendas_parquet"))
 
 
 def ler_clientes(spark: SparkSession) -> DataFrame:
@@ -99,9 +91,9 @@ def ler_categorias(spark: SparkSession) -> DataFrame:
 
 FONTES = {
     # nome       (leitor,          destino bronze)
-    "parceiro_a": (ler_parceiro_a, BRONZE / "vendas" / "parceiro_a"),
-    "parceiro_b": (ler_parceiro_b, BRONZE / "vendas" / "parceiro_b"),
-    "parceiro_c": (ler_parceiro_c, BRONZE / "vendas" / "parceiro_c"),
+    "vendas_csv": (ler_vendas_csv, BRONZE / "vendas" / "vendas_csv"),
+    "vendas_json": (ler_vendas_json, BRONZE / "vendas" / "vendas_json"),
+    "vendas_parquet": (ler_vendas_parquet, BRONZE / "vendas" / "vendas_parquet"),
     "clientes": (ler_clientes, BRONZE / "clientes"),
     "categorias": (ler_categorias, BRONZE / "categorias"),
 }
@@ -145,7 +137,7 @@ def main() -> None:
         log(logger, "Fonte ingerida", fonte=fonte, registros=registros, arquivos=arquivos)
 
     metricas["total_vendas_bronze"] = sum(
-        v["registros"] for k, v in metricas["fontes"].items() if k.startswith("parceiro_")
+        v["registros"] for k, v in metricas["fontes"].items() if k.startswith("vendas_")
     )
     salvar_metricas("bronze", metricas)
     log(logger, "Bronze concluída", total_vendas=metricas["total_vendas_bronze"])

@@ -2,7 +2,7 @@
 Camada SILVER — Normalização, limpeza, validação e quarentena
 ==============================================================
 
-Entrada : bronze/vendas/<parceiro>   (parceiro_a, parceiro_b, parceiro_c)
+Entrada : bronze/vendas/<fonte>      (vendas_csv, vendas_json, vendas_parquet)
           bronze/clientes, bronze/categorias
 Saída   : silver/vendas              (particionado por ano_mes)
           silver/clientes            (dimensão, minimizada — LGPD)
@@ -10,7 +10,7 @@ Saída   : silver/vendas              (particionado por ano_mes)
           quarentena/vendas          (registros reprovados + motivos)
 
 Passos para vendas:
-  1. Mapear cada parceiro para o schema unificado (A tem colunas em português)
+  1. Mapear cada fonte para o schema unificado (o CSV tem colunas em português)
   2. Tipar (int/double/timestamp/date) e padronizar texto (trim, caixa, vazio→NULL)
   3. Aplicar regras de qualidade (quality/checks.py) → válidos × quarentena
   4. Deduplicar por order_id (duplicatas excedentes vão para a quarentena)
@@ -32,7 +32,7 @@ from pyspark.sql import functions as F
 
 from quality.checks import aplicar_quarentena, resumir_quarentena
 from spark_jobs.common import (
-    BRONZE, PARCEIROS, QUARENTENA, SILVER, caminho, get_logger, get_spark, log,
+    BRONZE, FONTES_VENDAS, QUARENTENA, SILVER, caminho, get_logger, get_spark, log,
     parse_args, salvar_metricas,
 )
 
@@ -41,17 +41,17 @@ logger = get_logger("silver.transformacao")
 # Schema unificado de vendas (ordem das colunas na Silver)
 COLUNAS_VENDAS = [
     "order_id", "customer_id", "product_id", "quantity", "unit_price", "total_amount",
-    "order_date", "payment_method", "shipping_city", "shipping_state", "status", "partner_source",
+    "order_date", "payment_method", "shipping_city", "shipping_state", "status",
 ]
 METADADOS = ["_source", "_source_file", "_ingestion_ts", "_batch_id", "_data_ref"]
 
-# Parceiro A (ERP legado) usa nomes em português
-MAPEAMENTO_PARCEIRO_A = {
+# O CSV usa nomes de coluna em português
+MAPEAMENTO_CSV = {
     "cod_pedido": "order_id", "cod_cliente": "customer_id", "cod_produto": "product_id",
     "qtd": "quantity", "preco_unit": "unit_price", "valor_total": "total_amount",
     "data_pedido": "order_date", "forma_pagamento": "payment_method",
     "cidade_entrega": "shipping_city", "uf_entrega": "shipping_state",
-    "situacao": "status", "origem": "partner_source",
+    "situacao": "status",
 }
 
 
@@ -61,9 +61,9 @@ def _texto(c: str) -> F.Column:
     return F.nullif(F.trim(F.col(c).cast("string")), F.lit(""))
 
 
-def padronizar_vendas(df: DataFrame, parceiro: str) -> DataFrame:
-    if parceiro == "parceiro_a":
-        for antigo, novo in MAPEAMENTO_PARCEIRO_A.items():
+def padronizar_vendas(df: DataFrame, fonte: str) -> DataFrame:
+    if fonte == "vendas_csv":
+        for antigo, novo in MAPEAMENTO_CSV.items():
             df = df.withColumnRenamed(antigo, novo)
 
     for c in COLUNAS_VENDAS:
@@ -83,15 +83,14 @@ def padronizar_vendas(df: DataFrame, parceiro: str) -> DataFrame:
         _texto("shipping_city").alias("shipping_city"),
         F.upper(_texto("shipping_state")).alias("shipping_state"),
         F.lower(_texto("status")).alias("status"),
-        F.lower(_texto("partner_source")).alias("partner_source"),
         *METADADOS,
     ).withColumn("order_date", F.to_date("order_ts"))
 
 
 def carregar_vendas_bronze(spark: SparkSession) -> DataFrame:
     vendas = None
-    for parceiro in PARCEIROS:
-        df = padronizar_vendas(spark.read.parquet(caminho(BRONZE / "vendas" / parceiro)), parceiro)
+    for fonte in FONTES_VENDAS:
+        df = padronizar_vendas(spark.read.parquet(caminho(BRONZE / "vendas" / fonte)), fonte)
         vendas = df if vendas is None else vendas.unionByName(df)
     return vendas
 
@@ -128,7 +127,7 @@ def transformar_categorias(spark: SparkSession) -> DataFrame:
 
 
 def enriquecer(validos: DataFrame) -> DataFrame:
-    # Regra de catálogo do lab da Aula 2: 5.000 produtos, 500 por categoria
+    # Regra de catálogo: 5.000 produtos, 500 por categoria
     # PROD_0001–0500 → CAT_01, PROD_0501–1000 → CAT_02, ... (o JSON de
     # categorias não traz product_id, por isso a ligação usa essa regra)
     num_produto = F.regexp_extract("product_id", r"PROD_(\d+)", 1).cast("int")

@@ -45,7 +45,7 @@ UFS_VALIDAS = [
     "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA",
     "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO",
 ]
-# Contrato ShopBrasil: período de apuração dos dados enviados pelos parceiros
+# Contrato ShopBrasil: período de apuração das vendas
 PERIODO_INICIO = "2023-01-01"
 PERIODO_FIM = "2023-12-31"
 TOLERANCIA_TOTAL = 0.01  # R$ — arredondamento aceitável em total = qtd × preço
@@ -217,7 +217,7 @@ def _check(nome: str, dimensao: str, passou: bool, valor, esperado, bloqueante: 
 
 def gate_silver(spark: SparkSession, paths) -> list[dict]:
     bronze_total = sum(
-        spark.read.parquet(str(paths.BRONZE / "vendas" / p)).count() for p in paths.PARCEIROS
+        spark.read.parquet(str(paths.BRONZE / "vendas" / p)).count() for p in paths.FONTES_VENDAS
     )
     silver = spark.read.parquet(str(paths.SILVER / "vendas")).cache()
     quarentena = spark.read.parquet(str(paths.QUARENTENA / "vendas"))

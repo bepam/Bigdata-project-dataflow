@@ -1,15 +1,30 @@
-# Pipeline ShopBrasil — DataFlow Analytics
+# 🛒 Pipeline ShopBrasil — DataFlow Analytics
 
 **Projeto Final · Big Data Processing · MBA em Engenharia de Dados — Universidade Presbiteriana Mackenzie**
 Professor: Alexandre Tavares · **Opção A — Pipeline de E-commerce**
 
-Pipeline de produção que consolida as vendas de **três parceiros em três formatos** (CSV legado, JSON de API, Parquet), aplica **regras de qualidade com quarentena** e publica **métricas de negócio** para o dashboard executivo da ShopBrasil — tudo orquestrado pelo **Airflow**, processado com **PySpark** em arquitetura **Medallion** e empacotado em **Docker Compose**.
+## 🎯 O case
+
+**Problema.** A DataFlow Analytics precisa entregar um pipeline de produção para seu cliente **ShopBrasil**. O pipeline deve processar as vendas diárias, aplicar regras de qualidade e gerar métricas de negócio para o dashboard executivo.
+
+**Solução.** Um pipeline em arquitetura **Medallion** (Bronze → Silver → Gold), processado com **PySpark**, orquestrado pelo **Airflow** e empacotado em **Docker Compose**. Ele lê as vendas da ShopBrasil em três formatos (CSV, JSON e Parquet), mais os cadastros de clientes e de categorias, aplica **regras de qualidade com quarentena** e publica as **métricas de negócio** em Parquet.
+
+| Requisito da Opção A | Como o projeto atende |
+|---|---|
+| Ingestão: pelo menos 2 fontes em formatos diferentes | Vendas em CSV, JSON e Parquet + clientes (Parquet) + categorias (JSON) |
+| Bronze: dados brutos com `_source` e `_ingestion_ts` | `spark_jobs/ingestao.py` (inclui também `_source_file` e `_batch_id`) |
+| Silver: normalização de schema, nulls, deduplicação | `spark_jobs/transformacao.py` |
+| Gold: faturamento por estado + análise mensal | `spark_jobs/agregacao.py` (mais faturamento por pagamento e por categoria × segmento) |
+| Qualidade: completude, unicidade, domínio + quarentena | `quality/checks.py` (mais consistência e integridade referencial) |
+| Orquestração: sensor → spark job → quality checks → notificação | `dags/pipeline.py` (10 tasks) |
+| Docker: `docker compose up` sobe tudo | `docker-compose.yml` + `Dockerfile` |
 
 ```
 docker compose up -d --build   →   sensor → Bronze → Silver → quality gate → Gold → quality gate → notificação
 ```
 
-## Integrantes
+## 👥 Integrantes
+
 
 | Nome | RA |
 |---|---|
@@ -19,7 +34,7 @@ docker compose up -d --build   →   sensor → Bronze → Silver → quality ga
 | Pamella Bezerra da Silva | 10752643 |
 ---
 
-## Como rodar
+## 🚀 Como rodar
 
 Há duas formas. As duas usam o mesmo `docker-compose.yml`, e os dados de entrada já estão no repositório (`data/raw/`), então não é preciso baixar nada.
 
@@ -30,6 +45,7 @@ Há duas formas. As duas usam o mesmo `docker-compose.yml`, e os dados de entrad
 3. Aguarde. O Codespace já roda `docker compose up -d --build` sozinho. A primeira vez leva de 5 a 8 minutos; acompanhe no terminal com `docker compose ps`.
 4. Aba **PORTS** → porta **8080** → 🌐 abre o Airflow. A 4040 é a Spark UI (só aparece enquanto um job roda).
 
+> **Custo:** contas pessoais têm 120 core-horas grátis por mês, ou seja, **~30 h** numa máquina de 4 cores. **Pare o Codespace** quando não estiver usando (*Codespaces → Stop*); ele hiberna sozinho após 30 min parado e, ao reabrir, o ambiente sobe de novo automaticamente.
 
 ### Opção 2 — Docker na própria máquina
 
@@ -69,50 +85,41 @@ rm -rf data/bronze data/silver data/gold data/quarentena data/quality data/notif
 
 ---
 
-## Arquitetura
+## 🏗️ Arquitetura
 
 ```mermaid
 flowchart LR
-    RAW["data/raw<br/>CSV · JSON · Parquet"] --> B["Bronze<br/>dado bruto + metadados"]
-    B --> S["Silver<br/>schema unificado · limpo · deduplicado"]
-    B -. reprovados .-> Q["Quarentena<br/>+ motivos"]
-    S --> QG{{"Quality gate"}} --> G["Gold<br/>estado · mês · pagamento · categoria×segmento"]
-    G --> QG2{{"Quality gate"}} --> N["Notificação"]
+    RAW["📂 data/raw<br/>CSV · JSON · Parquet"] --> B["🥉 Bronze<br/>dado bruto + metadados"]
+    B --> S["🥈 Silver<br/>schema unificado · limpo · deduplicado"]
+    B -. reprovados .-> Q["🚧 Quarentena<br/>+ motivos"]
+    S --> QG{{"Quality gate"}} --> G["🥇 Gold<br/>estado · mês · pagamento · categoria×segmento"]
+    G --> QG2{{"Quality gate"}} --> N["📣 Notificação"]
 ```
 
 Detalhes completos (diagramas da DAG, contrato de cada camada, regras de qualidade e decisões): **[docs/arquitetura.md](docs/arquitetura.md)**.
 
-### Fontes de dados
+### Dados
 
-Somente arquivos do [repositório oficial da disciplina](https://github.com/AleTavares/Mackenzie_BigDataProcessing/tree/main/datasets), copiados **sem nenhuma alteração** (mesmo checksum SHA-256) para `data/raw/`.
+Conforme o enunciado, usamos os **datasets do curso** (pasta `datasets/` do [repositório da disciplina](https://github.com/AleTavares/Mackenzie_BigDataProcessing)), com o conteúdo sem alteração, em `data/raw/`:
 
-**Vendas — `datasets/aula_03`:**
-
-| Fonte | Arquivo | Formato | Registros |
+| Dado | Pasta em `data/raw/` | Formato | Registros |
 |---|---|---|---:|
-| `parceiro_a` | `vendas_legacy_01_2023.csv` | CSV ISO-8859-1, separador `;`, colunas em português | 495 |
-| `parceiro_a` | `vendas_legacy_06_2023.csv` | idem | 5.292 |
-| `parceiro_a` | `vendas_legacy_12_2023.csv` | idem | 1.084 |
-| `parceiro_b` | `api_dump_page_001.json` … `003.json` | JSON de API paginado (`data[]` + metadados) | 30.000 |
-| `parceiro_c` | `vendas_parceiro_c.parquet` | Parquet | 80.000 |
-| **Total de vendas** | 7 arquivos | | **116.871** |
+| Vendas | `vendas_csv` (3 arquivos) | CSV ISO-8859-1, separador `;`, colunas em português | 6.871 |
+| Vendas | `vendas_json` (3 arquivos) | JSON (registros dentro de `data[]`) | 30.000 |
+| Vendas | `vendas_parquet` (1 arquivo) | Parquet | 80.000 |
+| **Total de vendas** | | | **116.871** |
+| Clientes | `clientes` | Parquet | 500.000 |
+| Categorias | `categorias` | JSON aninhado (categorias → subcategorias) | 10 categorias |
 
-**Dimensões — `datasets/aula_02`** (exigidas pela Opção A):
+Todos os `customer_id` das vendas existem no cadastro de clientes. Como o JSON de categorias não traz `product_id`, o produto é ligado à categoria por uma regra de catálogo: faixas de 500 produtos (`PROD_0001–0500` → `CAT_01`, …).
 
-| Fonte | Arquivo | Formato | Registros |
-|---|---|---|---:|
-| `clientes` | `clientes.parquet` | Parquet | 500.000 clientes |
-| `categorias` | `categorias.json` | JSON aninhado (categorias → subcategorias) | 10 categorias |
-
-Todos os `customer_id` das vendas existem no cadastro de clientes. Como o JSON de categorias não traz `product_id`, o produto é ligado à categoria pela regra do lab da Aula 2: faixas de 500 produtos (`PROD_0001–0500` → `CAT_01`, …).
-
-> Os dados são **sintéticos**, gerados pelo professor com `datasets/gerar_datasets.py` (Faker pt_BR, seeds fixas). Todos os números deste projeto saem do processamento desses arquivos pelo pipeline.
+> Os dados são **sintéticos** (gerados para o curso) e cobrem o ano de 2023. Todos os números deste projeto saem do processamento desses arquivos pelo pipeline.
 
 ### Camadas
 
 | Camada | Job | Saída |
 |---|---|---|
-| Bronze | `spark_jobs/ingestao.py` | `data/bronze/vendas/parceiro_a`, `…/parceiro_b`, `…/parceiro_c`, `data/bronze/clientes`, `data/bronze/categorias` |
+| Bronze | `spark_jobs/ingestao.py` | `data/bronze/vendas/vendas_csv`, `…/vendas_json`, `…/vendas_parquet`, `data/bronze/clientes`, `data/bronze/categorias` |
 | Silver | `spark_jobs/transformacao.py` | `data/silver/vendas` (partição `ano_mes`), `data/silver/clientes`, `data/silver/categorias`, `data/quarentena/vendas` |
 | Gold | `spark_jobs/agregacao.py` | `data/gold/faturamento_por_estado`, `data/gold/analise_mensal`, `data/gold/faturamento_por_pagamento`, `data/gold/faturamento_categoria_segmento` |
 | Qualidade | `quality/checks.py` | `data/quality/ultima_execucao/*.json`, `data/quality/historico/` |
@@ -124,17 +131,35 @@ Todos os `customer_id` das vendas existem no cadastro de clientes. Como o JSON d
 - **Conservação garantida:** `Bronze = Silver + Quarentena` (verificado a cada execução).
 - **Quality gates bloqueantes:** se a Silver não passar, a Gold não é publicada; a Gold é reconciliada contra a Silver antes da notificação.
 
-**Resultado com os dados da Aula 3:** os 116.871 registros passaram em todas as regras, então a quarentena fica **vazia (0 registros)** e a DAG segue pelo ramo `sem_pendencias`. Isso é um resultado real: os arquivos da Aula 3 não têm nulos, duplicatas, valores fora do domínio, totais inconsistentes nem clientes fora do cadastro. O único problema encontrado é de linhagem: a coluna `partner_source` dentro dos arquivos não bate com o parceiro que enviou o arquivo (ver `docs/arquitetura.md`).
+**Resultado:** os 116.871 registros passaram em todas as regras, então a quarentena fica **vazia (0 registros)** e a DAG segue pelo ramo `sem_pendencias`. Isso é um resultado real: os arquivos do curso não têm nulos, duplicatas, valores fora do domínio, totais inconsistentes nem clientes fora do cadastro.
+
+### Regras aplicadas
+
+| Regra | Valor |
+|---|---|
+| Faturamento | Soma de `total_amount` dos pedidos **não cancelados** |
+| Campos obrigatórios da venda | Os 11 campos (pedido, cliente, produto, quantidade, preço, total, data, pagamento, cidade, UF, status) |
+| Status válidos | `pending`, `shipped`, `delivered`, `cancelled` |
+| Formas de pagamento válidas | `credit_card`, `debit_card`, `pix`, `boleto` |
+| UF válida | Uma das 27 unidades da federação |
+| Valores | Quantidade, preço unitário e total maiores que zero |
+| Período | Data do pedido dentro de 2023 |
+| Consistência | `total_amount = quantity × unit_price` (tolerância de R$ 0,01) |
+| Cliente | `customer_id` precisa existir no cadastro de clientes |
+| Duplicatas | Fica a primeira ocorrência de cada `order_id`; as demais vão para a quarentena |
+| Categoria do produto | Faixas de 500 produtos por categoria |
+| Limites dos quality gates | No máximo 10% das vendas em quarentena; no mínimo 50 mil vendas na Silver |
+| Dados pessoais | Nome, e-mail e telefone do cliente não seguem para a Silver |
 
 ### Orquestração
 
-`aguardar_arquivos_parceiros` (sensor) → `bronze_ingestao` → `silver_transformacao` → `quality_gate_silver` → `gold_agregacao` → `quality_gate_gold` → `verificar_quarentena` (branch) → `alertar_quarentena` | `sem_pendencias` → `notificar_sucesso`
+`aguardar_arquivos_vendas` (sensor) → `bronze_ingestao` → `silver_transformacao` → `quality_gate_silver` → `gold_agregacao` → `quality_gate_gold` → `verificar_quarentena` (branch) → `alertar_quarentena` | `sem_pendencias` → `notificar_sucesso`
 
 Retries com backoff, callback de falha, `max_active_runs=1` e parâmetros `taxa_quarentena_max` e `volume_minimo_silver` ajustáveis pela UI. Alertas e resumos são gravados em `data/notificacoes/` (simulando Slack/e-mail).
 
 ---
 
-## Estrutura do repositório
+## 📁 Estrutura do repositório
 
 ```
 projeto-final/
@@ -161,7 +186,7 @@ projeto-final/
 ├── conf/
 │   └── log4j2.properties       # log do Spark enxuto
 ├── data/
-│   └── raw/                    # vendas (aula_03) + clientes e categorias (aula_02)
+│   └── raw/                    # vendas (CSV, JSON, Parquet) + clientes + categorias
 └── docs/
     ├── arquitetura.md          # diagramas e decisões
     ├── apresentacao.md         # roteiro da apresentação + plano B
@@ -186,7 +211,7 @@ spark-submit quality/checks.py --camada gold
 python scripts/mostrar_resultados.py
 ```
 
-## Stack
+## 🛠️ Stack
 
 | Tecnologia | Versão |
 |---|---|
@@ -197,7 +222,7 @@ python scripts/mostrar_resultados.py
 | Docker Compose | 2.x |
 | Formato de saída | Parquet (Snappy) |
 
-## Problemas comuns
+## ❓ Problemas comuns
 
 | Sintoma | Solução |
 |---|---|
