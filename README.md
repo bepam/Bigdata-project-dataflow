@@ -1,9 +1,9 @@
-# 🛒 Pipeline ShopBrasil — DataFlow Analytics
+# Pipeline ShopBrasil — DataFlow Analytics
 
 **Projeto Final · Big Data Processing · MBA em Engenharia de Dados — Universidade Presbiteriana Mackenzie**
 Professor: Alexandre Tavares · **Opção A — Pipeline de E-commerce**
 
-## 🎯 O case
+## O case
 
 **Problema.** A DataFlow Analytics precisa entregar um pipeline de produção para seu cliente **ShopBrasil**. O pipeline deve processar as vendas diárias, aplicar regras de qualidade e gerar métricas de negócio para o dashboard executivo.
 
@@ -23,7 +23,7 @@ Professor: Alexandre Tavares · **Opção A — Pipeline de E-commerce**
 docker compose up -d --build   →   sensor → Bronze → Silver → quality gate → Gold → quality gate → notificação
 ```
 
-## 👥 Integrantes
+## Integrantes
 
 
 | Nome | RA |
@@ -34,7 +34,7 @@ docker compose up -d --build   →   sensor → Bronze → Silver → quality ga
 | Pamella Bezerra da Silva | 10752643 |
 ---
 
-## 🚀 Como rodar
+## Como rodar
 
 Há duas formas. As duas usam o mesmo `docker-compose.yml`, e os dados de entrada já estão no repositório (`data/raw/`), então não é preciso baixar nada.
 
@@ -44,8 +44,6 @@ Há duas formas. As duas usam o mesmo `docker-compose.yml`, e os dados de entrad
 2. Em *Machine type*, escolha **4-core** (16 GB RAM) → **Create codespace**.
 3. Aguarde. O Codespace já roda `docker compose up -d --build` sozinho. A primeira vez leva de 5 a 8 minutos; acompanhe no terminal com `docker compose ps`.
 4. Aba **PORTS** → porta **8080** → 🌐 abre o Airflow. A 4040 é a Spark UI (só aparece enquanto um job roda).
-
-> **Custo:** contas pessoais têm 120 core-horas grátis por mês, ou seja, **~30 h** numa máquina de 4 cores. **Pare o Codespace** quando não estiver usando (*Codespaces → Stop*); ele hiberna sozinho após 30 min parado e, ao reabrir, o ambiente sobe de novo automaticamente.
 
 ### Opção 2 — Docker na própria máquina
 
@@ -85,15 +83,15 @@ rm -rf data/bronze data/silver data/gold data/quarentena data/quality data/notif
 
 ---
 
-## 🏗️ Arquitetura
+## Arquitetura
 
 ```mermaid
 flowchart LR
-    RAW["📂 data/raw<br/>CSV · JSON · Parquet"] --> B["🥉 Bronze<br/>dado bruto + metadados"]
-    B --> S["🥈 Silver<br/>schema unificado · limpo · deduplicado"]
-    B -. reprovados .-> Q["🚧 Quarentena<br/>+ motivos"]
-    S --> QG{{"Quality gate"}} --> G["🥇 Gold<br/>estado · mês · pagamento · categoria×segmento"]
-    G --> QG2{{"Quality gate"}} --> N["📣 Notificação"]
+    RAW["data/raw<br/>CSV · JSON · Parquet"] --> B["Bronze<br/>dado bruto + metadados"]
+    B --> S["Silver<br/>schema unificado · limpo · deduplicado"]
+    B -. reprovados .-> Q["Quarentena<br/>+ motivos"]
+    S --> QG{{"Quality gate"}} --> G["Gold<br/>estado · mês · pagamento · categoria×segmento"]
+    G --> QG2{{"Quality gate"}} --> N["Notificação"]
 ```
 
 Detalhes completos (diagramas da DAG, contrato de cada camada, regras de qualidade e decisões): **[docs/arquitetura.md](docs/arquitetura.md)**.
@@ -159,7 +157,7 @@ Retries com backoff, callback de falha, `max_active_runs=1` e parâmetros `taxa_
 
 ---
 
-## 📁 Estrutura do repositório
+## Estrutura do repositório
 
 ```
 projeto-final/
@@ -193,7 +191,7 @@ projeto-final/
     └── slides/                 # apresentacao_projeto_final.pptx (+ gerar_slides.js)
 ```
 
-## 🧪 Rodar sem Docker (desenvolvimento)
+## Rodar sem Docker (desenvolvimento)
 
 Requer Python 3.10+ e Java 17.
 
@@ -211,7 +209,7 @@ spark-submit quality/checks.py --camada gold
 python scripts/mostrar_resultados.py
 ```
 
-## 🛠️ Stack
+## Stack
 
 | Tecnologia | Versão |
 |---|---|
@@ -222,7 +220,7 @@ python scripts/mostrar_resultados.py
 | Docker Compose | 2.x |
 | Formato de saída | Parquet (Snappy) |
 
-## ❓ Problemas comuns
+## Problemas comuns
 
 | Sintoma | Solução |
 |---|---|
