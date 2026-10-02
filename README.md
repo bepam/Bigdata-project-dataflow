@@ -1,4 +1,4 @@
-# 🛒 Pipeline ShopBrasil — DataFlow Analytics
+# Pipeline ShopBrasil — DataFlow Analytics
 
 **Projeto Final · Big Data Processing · MBA em Engenharia de Dados — Universidade Presbiteriana Mackenzie**
 Professor: Alexandre Tavares · **Opção A — Pipeline de E-commerce**
@@ -9,8 +9,7 @@ Pipeline de produção que consolida as vendas de **três parceiros em três for
 docker compose up -d --build   →   sensor → Bronze → Silver → quality gate → Gold → quality gate → notificação
 ```
 
-## 👥 Integrantes
-
+## Integrantes
 
 | Nome | RA |
 |---|---|
@@ -20,7 +19,7 @@ docker compose up -d --build   →   sensor → Bronze → Silver → quality ga
 | Pamella Bezerra da Silva | 10752643 |
 ---
 
-## 🚀 Como rodar
+## Como rodar
 
 Há duas formas. As duas usam o mesmo `docker-compose.yml`, e os dados de entrada já estão no repositório (`data/raw/`), então não é preciso baixar nada.
 
