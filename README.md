@@ -1,4 +1,4 @@
-# **Opção A - Pipeline ShopBrasil - DataFlow Analytics
+# Opção A - Pipeline ShopBrasil - DataFlow Analytics
 
 **Projeto Final · Big Data Processing · MBA em Engenharia de Dados - Universidade Presbiteriana Mackenzie**
 Professor: Alexandre Tavares
@@ -160,7 +160,7 @@ Retries com backoff, callback de falha, `max_active_runs=1` e parâmetros `taxa_
 ## Estrutura do repositório
 
 ```
-projeto-final/
+Bigdata-project-dataflow/
 ├── README.md
 ├── .devcontainer/
 │   └── devcontainer.json       # GitHub Codespaces (sobe tudo sozinho)
@@ -186,9 +186,7 @@ projeto-final/
 ├── data/
 │   └── raw/                    # vendas (CSV, JSON, Parquet) + clientes + categorias
 └── docs/
-    ├── arquitetura.md          # diagramas e decisões
-    ├── apresentacao.md         # roteiro da apresentação + plano B
-    └── slides/                 # apresentacao_projeto_final.pptx (+ gerar_slides.js)
+    └── arquitetura.md          # diagramas e decisões
 ```
 
 ## Rodar sem Docker (desenvolvimento)
